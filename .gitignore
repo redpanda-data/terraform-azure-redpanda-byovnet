@@ -1,0 +1,6 @@
+*.auto.tfvars.json
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.idea/**
+.terraform.lock.hcl

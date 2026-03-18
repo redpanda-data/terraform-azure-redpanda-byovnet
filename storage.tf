@@ -13,7 +13,8 @@ resource "azurerm_storage_account" "management" {
   access_tier              = "Hot"
 
   public_network_access_enabled   = true
-  allow_nested_items_to_be_public = true
+  allow_nested_items_to_be_public = false
+  infrastructure_encryption_enabled = true
 
   cross_tenant_replication_enabled = false
   shared_access_key_enabled        = false
@@ -22,6 +23,16 @@ resource "azurerm_storage_account" "management" {
     versioning_enabled = false # not supported in StorageV2 with HNS
     delete_retention_policy {
       days = 7
+    }
+  }
+
+  queue_properties {
+    logging {
+      delete  = true
+      read    = true
+      write   = true
+      version = "1.0"
+      retention_policy_days = 7
     }
   }
 
@@ -39,7 +50,7 @@ resource "azurerm_storage_container" "management" {
   ###### TODO change var. to local.
   name                  = "${local.resource_name_prefix}${var.redpanda_management_storage_container_name}"
   storage_account_name  = azurerm_storage_account.management.name
-  container_access_type = "blob"
+  container_access_type = "private"
   depends_on = [
     azurerm_storage_account.management
   ]
@@ -58,7 +69,7 @@ resource "azurerm_storage_account" "tiered_storage" {
   # WARNING/FIXME: Disabling public access breaks Terraform
   # and the Azure Portal.
   public_network_access_enabled     = true
-  allow_nested_items_to_be_public   = true
+  allow_nested_items_to_be_public   = false
   cross_tenant_replication_enabled  = false
   shared_access_key_enabled         = false
   infrastructure_encryption_enabled = true
@@ -67,6 +78,19 @@ resource "azurerm_storage_account" "tiered_storage" {
 
   blob_properties {
     versioning_enabled = false
+    delete_retention_policy {
+      days = 7
+    }
+  }
+
+  queue_properties {
+    logging {
+      delete  = true
+      read    = true
+      write   = true
+      version = "1.0"
+      retention_policy_days = 7
+    }
   }
 
   tags = var.tags

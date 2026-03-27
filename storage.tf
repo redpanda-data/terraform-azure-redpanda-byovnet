@@ -26,16 +26,6 @@ resource "azurerm_storage_account" "management" {
     }
   }
 
-  queue_properties {
-    logging {
-      delete  = true
-      read    = true
-      write   = true
-      version = "1.0"
-      retention_policy_days = 7
-    }
-  }
-
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.redpanda_agent.id]
@@ -78,19 +68,6 @@ resource "azurerm_storage_account" "tiered_storage" {
 
   blob_properties {
     versioning_enabled = false
-    delete_retention_policy {
-      days = 7
-    }
-  }
-
-  queue_properties {
-    logging {
-      delete  = true
-      read    = true
-      write   = true
-      version = "1.0"
-      retention_policy_days = 7
-    }
   }
 
   tags = var.tags

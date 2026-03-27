@@ -13,7 +13,7 @@ resource "azurerm_storage_account" "management" {
   access_tier              = "Hot"
 
   public_network_access_enabled   = true
-  allow_nested_items_to_be_public = true
+  allow_nested_items_to_be_public = false
 
   cross_tenant_replication_enabled = false
   shared_access_key_enabled        = false
@@ -58,7 +58,7 @@ resource "azurerm_storage_account" "tiered_storage" {
   # WARNING/FIXME: Disabling public access breaks Terraform
   # and the Azure Portal.
   public_network_access_enabled     = true
-  allow_nested_items_to_be_public   = true
+  allow_nested_items_to_be_public   = false
   cross_tenant_replication_enabled  = false
   shared_access_key_enabled         = false
   infrastructure_encryption_enabled = true

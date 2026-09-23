@@ -3,8 +3,9 @@ locals {
   // zone ids used for resources bound to the NAT gateways
   natg_zone_ids = [
     for m in data.azurerm_location.redpanda.zone_mappings :
-    m.logical_zone if contains(slice(var.zones, 0, 1), m.physical_zone)
+    m.logical_zone if m.physical_zone == try(var.zones[0], "")
   ]
+  natg_zone_error = "zones[0] must be a physical availability zone of region ${var.region}, such as ${var.region}-az1; got zones = ${jsonencode(var.zones)}."
 }
 
 resource "azurerm_nat_gateway" "redpanda" {
@@ -19,6 +20,13 @@ resource "azurerm_nat_gateway" "redpanda" {
   tags = var.tags
 
   depends_on = [azurerm_resource_group.all]
+
+  lifecycle {
+    precondition {
+      condition     = length(local.natg_zone_ids) > 0
+      error_message = local.natg_zone_error
+    }
+  }
 }
 
 resource "azurerm_public_ip_prefix" "redpanda" {
@@ -33,6 +41,13 @@ resource "azurerm_public_ip_prefix" "redpanda" {
   tags = var.tags
 
   depends_on = [azurerm_resource_group.all]
+
+  lifecycle {
+    precondition {
+      condition     = length(local.natg_zone_ids) > 0
+      error_message = local.natg_zone_error
+    }
+  }
 }
 
 resource "azurerm_nat_gateway_public_ip_prefix_association" "redpanda" {

@@ -31,11 +31,17 @@ resource "azurerm_subnet" "private" {
   private_endpoint_network_policies = "Enabled"
 
   # Use Azure's internal network to reach out to the following Azure services
-  service_endpoints = [
-    "Microsoft.Storage.Global",
-    "Microsoft.AzureActiveDirectory",
-    "Microsoft.KeyVault"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
+
+  service_endpoint {
+    service = "Microsoft.AzureActiveDirectory"
+  }
+
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
 
   lifecycle {
     # AKS automatically configures subnet delegations when the subnets are assigned
@@ -56,9 +62,15 @@ resource "azurerm_subnet" "public" {
   private_endpoint_network_policies = "Enabled"
 
   # Use Azure's internal network to reach out to the following Azure services
-  service_endpoints = [
-    "Microsoft.Storage.Global",
-    "Microsoft.AzureActiveDirectory",
-    "Microsoft.KeyVault",
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
+
+  service_endpoint {
+    service = "Microsoft.AzureActiveDirectory"
+  }
+
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
 }

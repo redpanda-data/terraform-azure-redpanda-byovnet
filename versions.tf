@@ -5,9 +5,11 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      # 4.42 adds rbac_authorization_enabled on azurerm_key_vault. 5.0 drops
-      # service_endpoints from azurerm_subnet, which network.tf sets.
-      version = ">= 4.42.0, < 5.0.0"
+      # 5.0 requires rbac_authorization_enabled on azurerm_key_vault and
+      # replaced the azurerm_subnet service_endpoints list with the
+      # service_endpoint block. Neither form works on both majors.
+      # 5.5 adds public_network_access on azurerm_storage_account.
+      version = ">= 5.5.0, < 6.0.0"
     }
   }
 }

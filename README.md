@@ -11,7 +11,7 @@ Redpanda in a customer's Azure environment.
 | Requirement | Version |
 | --- | --- |
 | Terraform | >= 1.2 |
-| `hashicorp/azurerm` | >= 5.0.0, < 6.0.0 |
+| `hashicorp/azurerm` | >= 5.5.0, < 6.0.0 |
 
 Module v2.x targets the azurerm 5.x schema. Module v1.x is the azurerm 4.x line.
 

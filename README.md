@@ -10,12 +10,15 @@ Redpanda in a customer's Azure environment.
 
 | Requirement | Version |
 | --- | --- |
-| Terraform | >= 1.2 |
+| Terraform | >= 1.8 |
 | `hashicorp/azurerm` | >= 5.5.0, < 6.0.0 |
+| `Azure/azapi` | >= 2.12.0, < 3.0.0 |
 
 Module v2.x targets the azurerm 5.x schema. Module v1.x is the azurerm 4.x line.
 
-An existing deployment moves from v1.x to v2.x in place. The subnet service endpoints move from the `service_endpoints` list to `service_endpoint` blocks, which hold the same values, and the provider does not force a new subnet on that field.
+The subnets are managed with `azapi_resource` rather than `azurerm_subnet`. The Redpanda BYOC agent reads a subnet's range only from `addressPrefix`, azurerm 5 writes only `addressPrefixes`, and Azure keeps a subnet in the plural form once it has been written that way, so an azurerm 5 subnet fails cluster creation. The azapi provider needs no configuration of its own: it uses the same Azure CLI or `ARM_*` credentials as azurerm.
+
+An existing deployment moves from v1.x to v2.x in place: `moved` blocks adopt the v1 `azurerm_subnet` resources, and the subnets keep their singular `addressPrefix`. Moving to v2 also moves the caller's root module to azurerm 5.5 or later.
 
 ## Module Overview
 

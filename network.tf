@@ -65,9 +65,11 @@ resource "azapi_resource" "private_subnet" {
   retry = { error_message_regex = ["AnotherOperationInProgress"] }
 
   lifecycle {
-    # locks and retry apply on create; a locks change would otherwise PUT
-    # the subnet, which subnets adopted from v1 (no locks in state) hit.
-    ignore_changes = [body, locks, retry]
+    # locks applies on create. A locks change would otherwise PUT the
+    # subnet, which subnets adopted from v1 (no locks in state) hit. retry
+    # stays managed: azapi applies it without a request, and delete reads
+    # it from state, so adopted subnets need it to retry conflicting deletes.
+    ignore_changes = [body, locks]
   }
 }
 
@@ -109,9 +111,11 @@ resource "azapi_resource" "public_subnet" {
   retry = { error_message_regex = ["AnotherOperationInProgress"] }
 
   lifecycle {
-    # locks and retry apply on create; a locks change would otherwise PUT
-    # the subnet, which subnets adopted from v1 (no locks in state) hit.
-    ignore_changes = [body, locks, retry]
+    # locks applies on create. A locks change would otherwise PUT the
+    # subnet, which subnets adopted from v1 (no locks in state) hit. retry
+    # stays managed: azapi applies it without a request, and delete reads
+    # it from state, so adopted subnets need it to retry conflicting deletes.
+    ignore_changes = [body, locks]
   }
 }
 

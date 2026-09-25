@@ -12,8 +12,7 @@ terraform {
     }
     azapi = {
       source = "Azure/azapi"
-      # 2.12 brings back ignore_body_changes on azapi_resource and fixes moves
-      # from azurerm resources.
+      # 2.12 fixes moved blocks from azurerm resources into azapi_resource.
       version = ">= 2.12.0, < 3.0.0"
     }
   }

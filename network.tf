@@ -26,6 +26,13 @@ data "azurerm_virtual_network" "redpanda" {
 # addressPrefixes, on create and on every update, and Azure keeps a subnet in
 # the plural form once it has been written that way. So the subnets are
 # created and managed through azapi with the singular form.
+#
+# Each subnet is two resources. azapi_resource creates it and never writes it
+# again: its update PUTs only body, which would clear what others attach
+# after create (AKS delegations, and a caller's route table, NSG, or, with
+# create_nat = false, NAT gateway). azapi_update_resource applies the fields
+# this module owns by reading the live subnet and merging them in, so those
+# attachments survive.
 locals {
   subnet_service_endpoints = [
     # Use Azure's internal network to reach out to the following Azure services
@@ -34,10 +41,9 @@ locals {
     { service = "Microsoft.KeyVault" },
   ]
 
-  # AKS delegates the subnets it uses after create. ignore_body_changes only
-  # substitutes live values for keys present in body, so body carries an
-  # empty delegations list for an update to fill with the live one.
-  subnet_ignore_body_changes = ["properties.delegations"]
+  # Empty unless the module owns the NAT gateway, so a caller's gateway is
+  # left as it is.
+  subnet_nat_gateway = { for id in azurerm_nat_gateway.redpanda[*].id : "natGateway" => { id = id } }
 }
 
 resource "azapi_resource" "private_subnet" {
@@ -47,23 +53,40 @@ resource "azapi_resource" "private_subnet" {
   name      = "${var.resource_name_prefix}${each.value.name}"
   parent_id = local.vnet.id
   body = {
-    properties = {
+    properties = merge({
       addressPrefix                  = each.value.cidr
       privateEndpointNetworkPolicies = "Enabled"
       serviceEndpoints               = local.subnet_service_endpoints
-      delegations                    = []
-      # Set here rather than through azurerm_subnet_nat_gateway_association:
-      # an azapi update omits whatever body leaves out, which would detach
-      # the gateway.
-      natGateway = var.create_nat ? { id = azurerm_nat_gateway.redpanda[0].id } : null
-    }
+    }, local.subnet_nat_gateway)
   }
-  ignore_body_changes = local.subnet_ignore_body_changes
+
+  # Subnet writes on one VNet conflict with AnotherOperationInProgress.
+  locks = [local.vnet.id]
+  retry = { error_message_regex = ["AnotherOperationInProgress"] }
+
+  lifecycle {
+    # locks and retry apply on create; a locks change would otherwise PUT
+    # the subnet, which subnets adopted from v1 (no locks in state) hit.
+    ignore_changes = [body, locks, retry]
+  }
+}
+
+resource "azapi_update_resource" "private_subnet" {
+  for_each = azapi_resource.private_subnet
+
+  type        = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+  resource_id = each.value.id
+  body = {
+    properties = merge({
+      addressPrefix                  = var.private_subnets[each.key].cidr
+      privateEndpointNetworkPolicies = "Enabled"
+      serviceEndpoints               = local.subnet_service_endpoints
+    }, local.subnet_nat_gateway)
+  }
   # Azure keeps the endpoint order a subnet was created with, and v1 created
   # them in azurerm 4's hash order; match by service, not by position.
   list_unique_id_property = { "properties.serviceEndpoints" = "service" }
 
-  # Subnet writes on one VNet conflict with AnotherOperationInProgress.
   locks = [local.vnet.id]
   retry = { error_message_regex = ["AnotherOperationInProgress"] }
 }
@@ -79,12 +102,31 @@ resource "azapi_resource" "public_subnet" {
       addressPrefix                  = each.value.cidr
       privateEndpointNetworkPolicies = "Enabled"
       serviceEndpoints               = local.subnet_service_endpoints
-      delegations                    = []
     }
   }
-  ignore_body_changes = local.subnet_ignore_body_changes
-  # Azure keeps the endpoint order a subnet was created with, and v1 created
-  # them in azurerm 4's hash order; match by service, not by position.
+
+  locks = [local.vnet.id]
+  retry = { error_message_regex = ["AnotherOperationInProgress"] }
+
+  lifecycle {
+    # locks and retry apply on create; a locks change would otherwise PUT
+    # the subnet, which subnets adopted from v1 (no locks in state) hit.
+    ignore_changes = [body, locks, retry]
+  }
+}
+
+resource "azapi_update_resource" "public_subnet" {
+  for_each = azapi_resource.public_subnet
+
+  type        = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+  resource_id = each.value.id
+  body = {
+    properties = {
+      addressPrefix                  = var.egress_subnets[each.key].cidr
+      privateEndpointNetworkPolicies = "Enabled"
+      serviceEndpoints               = local.subnet_service_endpoints
+    }
+  }
   list_unique_id_property = { "properties.serviceEndpoints" = "service" }
 
   locks = [local.vnet.id]
@@ -102,8 +144,9 @@ moved {
   to   = azapi_resource.public_subnet
 }
 
-# The NAT gateway is now part of each private subnet's body. Destroying the
-# v1 association would detach it, so drop it from state instead.
+# The module's NAT gateway is now set through the subnets themselves.
+# Destroying the v1 association would detach it, so drop it from state
+# instead.
 removed {
   from = azurerm_subnet_nat_gateway_association.redpanda
 

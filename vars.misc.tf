@@ -13,7 +13,9 @@ variable "zones" {
   type        = list(string)
   default     = ["eastus-az2"]
   description = <<-HELP
-    Physical availability zone ID. Ex: eastus-az1, eastus-az3, eastus-az2
+    Physical availability zone IDs in var.region. Ex: eastus-az1, eastus-az3, eastus-az2
+    The NAT gateway is placed in the first one. The default only fits
+    region = "eastus"; set both together.
   HELP
 }
 

@@ -15,71 +15,71 @@ output "vnet_name" {
 
 output "agent_private_subnet_name" {
   description = "Agent private subnet name"
-  value       = azurerm_subnet.private["agent-private"].name
+  value       = azapi_resource.private_subnet["agent-private"].name
 }
 
 output "rp_0_pods_subnet_name" {
   description = "Redpanda 0 pods subnet name"
-  value       = azurerm_subnet.private["rp-0-pods"].name
+  value       = azapi_resource.private_subnet["rp-0-pods"].name
 }
 
 output "rp_0_vnet_subnet_name" {
   description = "Redpanda 0 vnet subnet name"
-  value       = azurerm_subnet.private["rp-0-vnet"].name
+  value       = azapi_resource.private_subnet["rp-0-vnet"].name
 }
 
 output "rp_1_pods_subnet_name" {
   description = "Redpanda 1 pods subnet name"
-  value       = azurerm_subnet.private["rp-1-pods"].name
+  value       = azapi_resource.private_subnet["rp-1-pods"].name
 }
 
 output "rp_1_vnet_subnet_name" {
   description = "Redpanda 1 vnet subnet name"
-  value       = azurerm_subnet.private["rp-1-vnet"].name
+  value       = azapi_resource.private_subnet["rp-1-vnet"].name
 }
 output "rp_2_pods_subnet_name" {
   description = "Redpanda 2 pods subnet name"
-  value       = azurerm_subnet.private["rp-2-pods"].name
+  value       = azapi_resource.private_subnet["rp-2-pods"].name
 }
 
 output "rp_2_vnet_subnet_name" {
   description = "Redpanda 2 vnet subnet name"
-  value       = azurerm_subnet.private["rp-2-vnet"].name
+  value       = azapi_resource.private_subnet["rp-2-vnet"].name
 }
 
 output "rp_connect_pods_subnet_name" {
   description = "Redpanda connect pods subnet name"
-  value       = azurerm_subnet.private["connect-pod"].name
+  value       = azapi_resource.private_subnet["connect-pod"].name
 }
 
 output "rp_connect_vnet_subnet_name" {
   description = "Redpanda connect vnet subnet name"
-  value       = azurerm_subnet.private["connect-vnet"].name
+  value       = azapi_resource.private_subnet["connect-vnet"].name
 }
 
 output "kafka_connect_pods_subnet_name" {
   description = "Kafka connect pods subnet name"
-  value       = azurerm_subnet.private["kafka-connect-pod"].name
+  value       = azapi_resource.private_subnet["kafka-connect-pod"].name
 }
 
 output "kafka_connect_vnet_subnet_name" {
   description = "Kafka connect vnet subnet name"
-  value       = azurerm_subnet.private["kafka-connect-vnet"].name
+  value       = azapi_resource.private_subnet["kafka-connect-vnet"].name
 }
 
 output "system_pods_subnet_name" {
   description = "System pods subnet name"
-  value       = azurerm_subnet.private["system-pod"].name
+  value       = azapi_resource.private_subnet["system-pod"].name
 }
 
 output "system_vnet_subnet_name" {
   description = "System vnet subnet name"
-  value       = azurerm_subnet.private["system-vnet"].name
+  value       = azapi_resource.private_subnet["system-vnet"].name
 }
 
 output "egress_subnet_name" {
   description = "Egress subnet name"
-  value       = azurerm_subnet.public["agent-public"].name
+  value       = azapi_resource.public_subnet["agent-public"].name
 }
 
 
@@ -230,15 +230,15 @@ output "networks" {
       "address_space" : join(",", local.vnet.address_space)
     },
     "private-subnets" : {
-      for k, v in azurerm_subnet.private : k => {
+      for k, v in azapi_resource.private_subnet : k => {
         "id" : v.id,
-        "address_prefixes" : join(",", v.address_prefixes)
+        "address_prefixes" : var.private_subnets[k].cidr
       }
     },
     "egress-subnets" : {
-      for k, v in azurerm_subnet.public : k => {
+      for k, v in azapi_resource.public_subnet : k => {
         "id" : v.id,
-        "address_prefixes" : join(",", v.address_prefixes)
+        "address_prefixes" : var.egress_subnets[k].cidr
       }
     }
     "subnet-cidrs-aks" : var.reserved_subnet_cidrs

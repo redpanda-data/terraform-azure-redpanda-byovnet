@@ -59,10 +59,3 @@ resource "azurerm_nat_gateway_public_ip_prefix_association" "redpanda" {
   nat_gateway_id      = azurerm_nat_gateway.redpanda[0].id
   public_ip_prefix_id = azurerm_public_ip_prefix.redpanda[0].id
 }
-
-resource "azurerm_subnet_nat_gateway_association" "redpanda" {
-  for_each = var.create_nat ? var.private_subnets : {}
-
-  subnet_id      = azurerm_subnet.private[each.key].id
-  nat_gateway_id = azurerm_nat_gateway.redpanda[0].id
-}

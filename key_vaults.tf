@@ -16,7 +16,7 @@ resource "azurerm_key_vault" "vault" {
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
-  enable_rbac_authorization       = true
+  rbac_authorization_enabled      = true
 
   network_acls {
     bypass                     = "AzureServices"
@@ -60,7 +60,7 @@ resource "azurerm_key_vault" "console" {
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
-  enable_rbac_authorization       = true
+  rbac_authorization_enabled      = true
 
   network_acls {
     bypass                     = "AzureServices"

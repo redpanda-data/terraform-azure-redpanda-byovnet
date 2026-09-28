@@ -6,6 +6,20 @@ This Terraform module provisions the necessary Azure infrastructure for a Redpan
 identities, role assignments, network security groups, VNet components, and storage resources required for deploying
 Redpanda in a customer's Azure environment.
 
+## Requirements
+
+| Requirement | Version |
+| --- | --- |
+| Terraform | >= 1.8 |
+| `hashicorp/azurerm` | >= 5.5.0, < 6.0.0 |
+| `Azure/azapi` | >= 2.12.0, < 3.0.0 |
+
+Module v2.x targets the azurerm 5.x schema. Module v1.x is the azurerm 4.x line.
+
+The subnets are managed with azapi rather than `azurerm_subnet`. The Redpanda BYOC agent reads a subnet's range only from `addressPrefix`, azurerm 5 writes only `addressPrefixes`, and Azure keeps a subnet in the plural form once it has been written that way, so an azurerm 5 subnet fails cluster creation. `azapi_resource` creates each subnet with `addressPrefix`, and `azapi_update_resource` applies the fields the module owns by merging them into the live subnet. Route tables, NSGs and NAT gateways attached outside the module (the last with `create_nat = false`), and AKS subnet delegations, are left in place. The azapi provider needs no configuration of its own: it uses the same Azure CLI or `ARM_*` credentials as azurerm.
+
+An existing deployment moves from v1.x to v2.x in place: `moved` blocks adopt the v1 `azurerm_subnet` resources, and the subnets keep their singular `addressPrefix`. Moving to v2 also moves the caller's root module to azurerm 5.5 or later.
+
 ## Module Overview
 
 This module deploys several core components:

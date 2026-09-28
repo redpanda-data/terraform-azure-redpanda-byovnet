@@ -1,5 +1,5 @@
 locals {
-  allowed_subnet_ids = [for s in azurerm_subnet.private : s.id]
+  allowed_subnet_ids = [for s in azapi_resource.private_subnet : s.id]
 }
 
 resource "azurerm_key_vault" "vault" {

@@ -15,7 +15,17 @@ Redpanda in a customer's Azure environment.
 
 Module v2.x targets the azurerm 5.x schema. Module v1.x is the azurerm 4.x line.
 
-An existing deployment moves from v1.x to v2.x in place. The subnet service endpoints move from the `service_endpoints` list to `service_endpoint` blocks, which hold the same values, and the provider does not force a new subnet on that field.
+The constraint applies to the root module that calls this one. A caller on azurerm 4.x must move its
+own configuration to azurerm >= 5.5.0 first. That affects every other azurerm resource in the caller's
+configuration, so read the
+[azurerm 5.0 upgrade guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/5.0-upgrade-guide)
+before the move.
+
+An existing deployment moves from v1.x to v2.x in place. The subnet service endpoints move from the
+`service_endpoints` list to `service_endpoint` blocks, which hold the same values, and the provider
+does not force a new subnet on that field. `service_endpoint` is a list, and the module declares the
+blocks in the order azurerm 4 wrote them, so the first v2.x plan shows no subnet change. Changing that
+order gives an in-place update on every subnet.
 
 ## Module Overview
 

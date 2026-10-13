@@ -30,12 +30,21 @@ resource "azurerm_subnet" "private" {
 
   private_endpoint_network_policies = "Enabled"
 
-  # Use Azure's internal network to reach out to the following Azure services
-  service_endpoints = [
-    "Microsoft.Storage.Global",
-    "Microsoft.AzureActiveDirectory",
-    "Microsoft.KeyVault"
-  ]
+  # Use Azure's internal network to reach out to the following Azure services.
+  # service_endpoint is a list, and Azure keeps the order a subnet was created
+  # with. azurerm 4 hashed the old service_endpoints set into this order, so
+  # keeping it means an upgrade from module v1 shows no subnet change.
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
+
+  service_endpoint {
+    service = "Microsoft.AzureActiveDirectory"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 
   lifecycle {
     # AKS automatically configures subnet delegations when the subnets are assigned
@@ -55,10 +64,19 @@ resource "azurerm_subnet" "public" {
 
   private_endpoint_network_policies = "Enabled"
 
-  # Use Azure's internal network to reach out to the following Azure services
-  service_endpoints = [
-    "Microsoft.Storage.Global",
-    "Microsoft.AzureActiveDirectory",
-    "Microsoft.KeyVault",
-  ]
+  # Use Azure's internal network to reach out to the following Azure services.
+  # service_endpoint is a list, and Azure keeps the order a subnet was created
+  # with. azurerm 4 hashed the old service_endpoints set into this order, so
+  # keeping it means an upgrade from module v1 shows no subnet change.
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
+
+  service_endpoint {
+    service = "Microsoft.AzureActiveDirectory"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 }

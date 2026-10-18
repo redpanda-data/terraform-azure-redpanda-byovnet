@@ -43,7 +43,12 @@ resource "azurerm_key_vault" "vault" {
 
   tags = var.tags
 
-  depends_on = [azurerm_resource_group.all]
+  # The NAT gateway associations update the subnets that network_acls
+  # references. A vault created meanwhile fails with SubnetsNotProvisioned.
+  depends_on = [
+    azurerm_resource_group.all,
+    azurerm_subnet_nat_gateway_association.redpanda,
+  ]
 }
 
 resource "azurerm_key_vault" "console" {
@@ -87,5 +92,10 @@ resource "azurerm_key_vault" "console" {
 
   tags = var.tags
 
-  depends_on = [azurerm_resource_group.all]
+  # The NAT gateway associations update the subnets that network_acls
+  # references. A vault created meanwhile fails with SubnetsNotProvisioned.
+  depends_on = [
+    azurerm_resource_group.all,
+    azurerm_subnet_nat_gateway_association.redpanda,
+  ]
 }
